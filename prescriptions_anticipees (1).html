@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prescriptions Anticipées</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .category {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .category-title {
+            font-size: 1.3em;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        select, input, textarea {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .pca-section {
+            background: #fff3cd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 2px solid #ffc107;
+        }
+
+        .pca-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            font-size: 0.9em;
+            padding: 8px 16px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .comment-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e8f4f8;
+            border-radius: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .prescription-output {
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            border: 2px solid #667eea;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-modal:hover {
+            color: #000;
+        }
+
+        .edit-btn {
+            background: #28a745;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            cursor: pointer;
+            border: none;
+        }
+
+        .edit-btn:hover {
+            background: #218838;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .btn, .edit-btn, .close-modal {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Propositions de Prescriptions Anticipées</h1>
+            <p>Aide à la rédaction de propositions de prescriptions anticipées en soins palliatifs</p>
+        </div>
+
+        <div class="content">
+            <div id="categories-container"></div>
+
+            <div class="comment-section">
+                <label for="general-comment">Commentaires généraux :</label>
+                <textarea id="general-comment" placeholder="Ajouter des commentaires généraux pour cette prescription..."></textarea>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="generatePrescription()">
+                    📄 Générer les Propositions
+                </button>
+                <button class="btn btn-secondary" onclick="resetForm()">
+                    🔄 Réinitialiser
+                </button>
+                <button class="btn btn-secondary" onclick="openEditor()">
+                    ⚙️ Gérer les médicaments
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for prescription output -->
+    <div id="prescription-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2>Propositions de Prescriptions Générées</h2>
+            <div id="prescription-output" class="prescription-output"></div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimer</button>
+                <button class="btn btn-secondary" onclick="copyPrescription()">📋 Copier</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for medication editor -->
+    <div id="editor-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditorModal()">&times;</span>
+            <h2>Gestion des Médicaments</h2>
+            <div id="editor-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Default medication database
+        const defaultMedications = {
+            "Douleurs nociceptives": ["Morphine", "Oxycodone", "Hydromorphone", "Fentanyl", "Paracétamol"],
+            "Anxiété": ["Midazolam", "Lorazépam", "Alprazolam", "Diazépam"],
+            "Encombrement respiratoire": ["Scopolamine", "Atropine", "Glycopyrronium"],
+            "Douleurs neuropathiques": ["Gabapentine", "Prégabaline", "Amitriptyline", "Duloxétine"],
+            "Polypnée inconfortable": ["Morphine", "Midazolam", "Oxygène"],
+            "Nausées/vomissements": ["Métoclopramide", "Ondansétron", "Halopéridol", "Dexaméthasone"],
+            "Constipation": ["Macrogol", "Lactulose", "Bisacodyl", "Docusate"],
+            "Hygiène buccale": ["Bicarbonate de sodium", "Chlorhexidine", "Nystatine"],
+            "Autres symptômes": ["Dexaméthasone", "Halopéridol", "Lévomepromazine"],
+            "Divers": []
+        };
+
+        const defaultDosages = ["1 mg", "2 mg", "5 mg", "10 mg", "20 mg", "50 mg", "100 mg", "500 mg", "1 g"];
+        const defaultDurations = ["1 fois", "si besoin", "toutes les 4h", "toutes les 6h", "toutes les 8h", "toutes les 12h", "1x/jour", "2x/jour", "3x/jour"];
+        const defaultAdministrations = ["PO (per os)", "SC (sous-cutané)", "IV (intraveineux)", "IM (intramusculaire)", "Topique", "Inhalation"];
+
+        // Load medications from localStorage or use defaults
+        let medications = loadMedications();
+        let formData = {};
+        let treatmentCounts = {}; // Track number of treatment lines per category
+
+        function loadMedications() {
+            const stored = localStorage.getItem('prescriptions_medications');
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch (e) {
+                    console.error('Error loading medications:', e);
+                    return JSON.parse(JSON.stringify(defaultMedications));
+                }
+            }
+            return JSON.parse(JSON.stringify(defaultMedications));
+        }
+
+        function saveMedicationsToStorage() {
+            try {
+                localStorage.setItem('prescriptions_medications', JSON.stringify(medications));
+                return true;
+            } catch (e) {
+                console.error('Error saving medications:', e);
+                alert('Erreur lors de la sauvegarde. Votre navigateur bloque peut-être le stockage local.');
+                return false;
+            }
+        }
+
+        function resetToDefaults() {
+            if (confirm('Voulez-vous vraiment réinitialiser toutes les listes de médicaments aux valeurs par défaut ? Toutes vos modifications seront perdues.')) {
+                medications = JSON.parse(JSON.stringify(defaultMedications));
+                saveMedicationsToStorage();
+                closeEditorModal();
+                treatmentCounts = {};
+                document.getElementById('categories-container').innerHTML = '';
+                initializeForm();
+                alert('Les listes de médicaments ont été réinitialisées aux valeurs par défaut.');
+            }
+        }
+
+        function initializeForm() {
+            const container = document.getElementById('categories-container');
+            const categories = Object.keys(medications);
+
+            categories.forEach((category, index) => {
+                treatmentCounts[index] = 1; // Initialize with one treatment line
+                
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                categoryDiv.id = `category-${index}`;
+
+                categoryDiv.innerHTML = `
+                    <div class="category-header">
+                        <div class="category-title">${index + 1}. ${category}</div>
+                    </div>
+                    <div id="treatments-container-${index}">
+                        ${createTreatmentLine(index, 0, category)}
+                    </div>
+                    <div style="margin: 15px 0; text-align: right;">
+                        <button class="btn btn-secondary" onclick="addTreatmentLine(${index}, '${category}')" style="font-size: 1.2em; padding: 8px 20px;">
+                            ➕ Ajouter un traitement
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label>Commentaire général pour cette catégorie</label>
+                        <textarea id="comment-category-${index}" placeholder="Commentaires généraux pour ${category}..."></textarea>
+                    </div>
+                `;
+
+                container.appendChild(categoryDiv);
+            });
+        }
+
+        function createTreatmentLine(categoryIndex, lineIndex, category) {
+            const lineId = `${categoryIndex}-${lineIndex}`;
+            return `
+                <div class="treatment-line" id="treatment-line-${lineId}" style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white; position: relative;">
+                    ${lineIndex > 0 ? `<button onclick="removeTreatmentLine(${categoryIndex}, ${lineIndex})" style="position: absolute; top: 10px; right: 10px; background: #dc3545; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 0.9em;">✕ Retirer</button>` : ''}
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Indication / Commentaire</label>
+                        <textarea id="comment-${lineId}" placeholder="Ex: En cas de douleur intense, si SpO2 < 90%, etc."></textarea>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="type-${lineId}" onchange="togglePCA('${lineId}')">
+                                <option value="">-- Sélectionner --</option>
+                                <option value="standard">Standard</option>
+                                <option value="pca">PCA</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Médicament</label>
+                            <select id="medication-${lineId}">
+                                <option value="">-- Sélectionner --</option>
+                                ${medications[category].map(med => `<option value="${med}">${med}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Posologie</label>
+                            <select id="dosage-${lineId}">
+                                <option value="">-- Sélectionner --</option>
+                                ${defaultDosages.map(d => `<option value="${d}">${d}</option>`).join('')}
+                                <option value="custom">Personnalisé...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Fréquence</label>
+                            <select id="duration-${lineId}">
+                                <option value="">-- Sélectionner --</option>
+                                ${defaultDurations.map(d => `<option value="${d}">${d}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Administration</label>
+                            <select id="administration-${lineId}">
+                                <option value="">-- Sélectionner --</option>
+                                ${defaultAdministrations.map(a => `<option value="${a}">${a}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div id="pca-${lineId}" class="pca-section hidden">
+                        <div class="pca-title">⚡ Paramètres PCA</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Dose de fond (mg/h)</label>
+                                <input type="text" id="pca-background-${lineId}" placeholder="ex: 2">
+                            </div>
+                            <div class="form-group">
+                                <label>Durée dose de fond (heures)</label>
+                                <input type="text" id="pca-background-duration-${lineId}" placeholder="ex: continue ou 24">
+                            </div>
+                            <div class="form-group">
+                                <label>Bolus (mg)</label>
+                                <input type="text" id="pca-bolus-${lineId}" placeholder="ex: 1">
+                            </div>
+                            <div class="form-group">
+                                <label>Période réfractaire (h)</label>
+                                <input type="number" id="pca-lockout-${lineId}" placeholder="ex: 0.25" step="0.25">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addTreatmentLine(categoryIndex, category) {
+            const lineIndex = treatmentCounts[categoryIndex];
+            treatmentCounts[categoryIndex]++;
+            
+            const container = document.getElementById(`treatments-container-${categoryIndex}`);
+            const newLine = document.createElement('div');
+            newLine.innerHTML = createTreatmentLine(categoryIndex, lineIndex, category);
+            container.appendChild(newLine.firstElementChild);
+        }
+
+        function removeTreatmentLine(categoryIndex, lineIndex) {
+            const lineId = `${categoryIndex}-${lineIndex}`;
+            const line = document.getElementById(`treatment-line-${lineId}`);
+            if (line && confirm('Voulez-vous vraiment retirer cette ligne de traitement ?')) {
+                line.remove();
+            }
+        }
+
+        function togglePCA(lineId) {
+            const type = document.getElementById(`type-${lineId}`).value;
+            const pcaSection = document.getElementById(`pca-${lineId}`);
+            
+            if (type === 'pca') {
+                pcaSection.classList.remove('hidden');
+            } else {
+                pcaSection.classList.add('hidden');
+            }
+        }
+
+        function generatePrescription() {
+            let prescription = "═══════════════════════════════════════════════════════\n";
+            prescription += "      PROPOSITIONS DE PRESCRIPTIONS ANTICIPÉES\n";
+            prescription += "═══════════════════════════════════════════════════════\n\n";
+            prescription += `Date : ${new Date().toLocaleDateString('fr-FR')}\n\n`;
+
+            const categories = Object.keys(medications);
+            let hasContent = false;
+
+            categories.forEach((category, categoryIndex) => {
+                let categoryHasContent = false;
+                let categoryPrescription = "";
+                
+                // Check all treatment lines for this category
+                for (let lineIndex = 0; lineIndex < treatmentCounts[categoryIndex]; lineIndex++) {
+                    const lineId = `${categoryIndex}-${lineIndex}`;
+                    const lineElement = document.getElementById(`treatment-line-${lineId}`);
+                    
+                    // Skip if line was removed
+                    if (!lineElement) continue;
+                    
+                    const type = document.getElementById(`type-${lineId}`)?.value;
+                    const medication = document.getElementById(`medication-${lineId}`)?.value;
+                    
+                    if (type && medication) {
+                        if (!categoryHasContent) {
+                            categoryPrescription += `\n${categoryIndex + 1}. ${category.toUpperCase()}\n`;
+                            categoryPrescription += "─────────────────────────────────────────────────\n";
+                            categoryHasContent = true;
+                            hasContent = true;
+                        }
+                        
+                        const dosage = document.getElementById(`dosage-${lineId}`).value;
+                        const duration = document.getElementById(`duration-${lineId}`).value;
+                        const administration = document.getElementById(`administration-${lineId}`).value;
+                        const comment = document.getElementById(`comment-${lineId}`).value;
+
+                        if (lineIndex > 0) categoryPrescription += "\n";
+                        
+                        // Show comment first if it exists
+                        if (comment) categoryPrescription += `   ℹ️  ${comment}\n`;
+                        
+                        categoryPrescription += `   • Médicament : ${medication}\n`;
+                        
+                        if (type === 'pca') {
+                            categoryPrescription += `     Mode : PCA (Patient Controlled Analgesia)\n`;
+                            
+                            const bgDose = document.getElementById(`pca-background-${lineId}`).value;
+                            const bgDuration = document.getElementById(`pca-background-duration-${lineId}`).value;
+                            const bolus = document.getElementById(`pca-bolus-${lineId}`).value;
+                            const lockout = document.getElementById(`pca-lockout-${lineId}`).value;
+                            
+                            if (bgDose) {
+                                categoryPrescription += `     - Dose de fond : ${bgDose} mg/h`;
+                                if (bgDuration) categoryPrescription += ` pendant ${bgDuration} heure(s)`;
+                                categoryPrescription += `\n`;
+                            }
+                            
+                            if (bolus) categoryPrescription += `     - Bolus : ${bolus} mg\n`;
+                            if (lockout) categoryPrescription += `     - Période réfractaire : ${lockout} heure(s)\n`;
+                        } else {
+                            if (dosage) categoryPrescription += `     Posologie : ${dosage}\n`;
+                            if (duration) categoryPrescription += `     Fréquence : ${duration}\n`;
+                        }
+                        
+                        if (administration) categoryPrescription += `     Administration : ${administration}\n`;
+                    }
+                }
+                
+                // Add category comment if exists
+                if (categoryHasContent) {
+                    const categoryComment = document.getElementById(`comment-category-${categoryIndex}`).value;
+                    if (categoryComment) {
+                        categoryPrescription += `\n   💬 Commentaire général : ${categoryComment}\n`;
+                    }
+                    prescription += categoryPrescription;
+                }
+            });
+
+            if (!hasContent) {
+                alert('Veuillez sélectionner au moins un traitement avant de générer les propositions.');
+                return;
+            }
+
+            const generalComment = document.getElementById('general-comment').value;
+            if (generalComment) {
+                prescription += "\n\n═══════════════════════════════════════════════════════\n";
+                prescription += "COMMENTAIRES GÉNÉRAUX\n";
+                prescription += "═══════════════════════════════════════════════════════\n";
+                prescription += generalComment + "\n";
+            }
+
+            prescription += "\n\n═══════════════════════════════════════════════════════\n";
+            prescription += "Signature : _____________________  Date : ___________\n";
+            prescription += "═══════════════════════════════════════════════════════\n";
+
+            document.getElementById('prescription-output').textContent = prescription;
+            document.getElementById('prescription-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('prescription-modal').classList.remove('active');
+        }
+
+        function copyPrescription() {
+            const text = document.getElementById('prescription-output').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Propositions de prescriptions copiées dans le presse-papier !');
+            });
+        }
+
+        function resetForm() {
+            if (confirm('Voulez-vous vraiment réinitialiser le formulaire ?')) {
+                treatmentCounts = {};
+                location.reload();
+            }
+        }
+
+        function openEditor() {
+            const editorContent = document.getElementById('editor-content');
+            const categories = Object.keys(medications);
+            
+            let html = '<div style="margin-bottom: 30px;">';
+            
+            categories.forEach((category, catIndex) => {
+                html += `
+                    <div style="background: #f8f9fa; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
+                        <h3 style="margin-bottom: 15px; color: #667eea;">${category}</h3>
+                        <div id="med-list-${catIndex}">
+                `;
+                
+                medications[category].forEach((med, medIndex) => {
+                    html += `
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                            <input type="text" value="${med}" id="med-${catIndex}-${medIndex}" 
+                                   style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 4px;">
+                            <button onclick="deleteMedication(${catIndex}, ${medIndex})" 
+                                    style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+                                🗑️ Supprimer
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                        <button onclick="addMedication(${catIndex})" class="btn btn-secondary" style="margin-top: 10px;">
+                            ➕ Ajouter un médicament
+                        </button>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div style="text-align: center; margin-top: 30px;">
+                    <button onclick="saveMedications()" class="btn btn-primary">💾 Enregistrer les modifications</button>
+                    <button onclick="resetToDefaults()" class="btn btn-secondary" style="background: #dc3545;">🔄 Réinitialiser aux valeurs par défaut</button>
+                </div>
+            </div>
+            `;
+            
+            editorContent.innerHTML = html;
+            document.getElementById('editor-modal').classList.add('active');
+        }
+
+        function closeEditorModal() {
+            document.getElementById('editor-modal').classList.remove('active');
+        }
+
+        function addMedication(catIndex) {
+            const category = Object.keys(medications)[catIndex];
+            const newMed = prompt('Nom du nouveau médicament :');
+            if (newMed && newMed.trim()) {
+                medications[category].push(newMed.trim());
+                saveMedicationsToStorage();
+                openEditor();
+            }
+        }
+
+        function deleteMedication(catIndex, medIndex) {
+            const category = Object.keys(medications)[catIndex];
+            if (confirm(`Supprimer "${medications[category][medIndex]}" ?`)) {
+                medications[category].splice(medIndex, 1);
+                saveMedicationsToStorage();
+                openEditor();
+            }
+        }
+
+        function saveMedications() {
+            const categories = Object.keys(medications);
+            
+            categories.forEach((category, catIndex) => {
+                const updatedMeds = [];
+                medications[category].forEach((_, medIndex) => {
+                    const input = document.getElementById(`med-${catIndex}-${medIndex}`);
+                    if (input && input.value.trim()) {
+                        updatedMeds.push(input.value.trim());
+                    }
+                });
+                medications[category] = updatedMeds;
+            });
+            
+            if (saveMedicationsToStorage()) {
+                closeEditorModal();
+                treatmentCounts = {};
+                document.getElementById('categories-container').innerHTML = '';
+                initializeForm();
+                alert('Modifications enregistrées et sauvegardées ! Le formulaire a été mis à jour.');
+            }
+        }
+
+        // Initialize on load
+        window.onload = initializeForm;
+    </script>
+</body>
+</html>
